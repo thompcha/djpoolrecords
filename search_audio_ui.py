@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
+import shutil
 import subprocess
 import sys
 import unicodedata
@@ -66,6 +68,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Print the final transformed query before launching browser search.",
     )
+    parser.add_argument(
+        "--query-from-tags",
+        action="store_true",
+        help="For audio file paths, build the query from artist/title tags instead of the filename.",
+    )
     return parser.parse_args()
 
 
@@ -113,26 +120,93 @@ def remove_query_stopwords(text: str) -> str:
     return re.sub(r"\s{2,}", " ", text)
 
 
+def clean_query_part(text: str) -> str:
+    text = remove_explicit(text)
+    text = remove_diacritics(text)
+    text = text.replace("_", " ")
+    text = truncate_after_keywords(text)
+    return text.strip()
+
+
 def filename_to_query(input_path: Path) -> str:
     name = input_path.name
     if "." in name:
         name = name.rsplit(".", 1)[0]
 
-    name = remove_explicit(name)
-    name = remove_diacritics(name)
-    name = name.replace("_", " ")
+    name = remove_explicit(remove_diacritics(name)).replace("_", " ")
 
     if " - " in name:
         artist, title = name.split(" - ", 1)
     else:
         artist, title = name, ""
 
-    artist = truncate_after_keywords(artist)
-    title = truncate_after_keywords(title)
+    artist = clean_query_part(artist)
+    title = clean_query_part(title)
 
     search = f"{artist} - {title}"
     search = remove_query_stopwords(search).strip()
     return search
+
+
+def first_tag_value(tags: dict[str, object], key: str) -> str:
+    for tag_key, value in tags.items():
+        if tag_key.lower() != key:
+            continue
+        if isinstance(value, list):
+            value = value[0] if value else ""
+        return str(value).strip()
+    return ""
+
+
+def find_ffprobe() -> str:
+    ffprobe = shutil.which("ffprobe")
+    if ffprobe:
+        return ffprobe
+    for candidate in ("/opt/homebrew/bin/ffprobe", "/usr/local/bin/ffprobe", "/usr/bin/ffprobe"):
+        if Path(candidate).exists():
+            return candidate
+    return ""
+
+
+def audio_tags_to_query(input_path: Path) -> str:
+    ffprobe = find_ffprobe()
+    if not ffprobe:
+        return ""
+
+    result = subprocess.run(
+        [
+            ffprobe,
+            "-v",
+            "error",
+            "-show_entries",
+            "format_tags=artist,title",
+            "-of",
+            "json",
+            str(input_path),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return ""
+
+    try:
+        payload = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return ""
+
+    tags = payload.get("format", {}).get("tags", {})
+    if not isinstance(tags, dict):
+        return ""
+
+    artist = clean_query_part(first_tag_value(tags, "artist"))
+    title = clean_query_part(first_tag_value(tags, "title"))
+    if not artist and not title:
+        return ""
+
+    search = f"{artist} - {title}" if artist and title else artist or title
+    return remove_query_stopwords(search).strip()
 
 
 def resolve_query(args: argparse.Namespace) -> str:
@@ -146,6 +220,14 @@ def resolve_query(args: argparse.Namespace) -> str:
 
     maybe_path = Path(raw).expanduser()
     if maybe_path.exists():
+        if args.query_from_tags:
+            tag_query = audio_tags_to_query(maybe_path)
+            if tag_query:
+                return tag_query
+            print(
+                "Could not read artist/title tags; falling back to filename query.",
+                file=sys.stderr,
+            )
         return filename_to_query(maybe_path)
 
     return remove_query_stopwords(raw).strip()

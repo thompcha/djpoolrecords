@@ -5,13 +5,15 @@
 Purpose:
 - Main user entry point.
 - Accepts file path or raw query.
-- Applies filename transformations and launches browser search.
+- Applies filename or artist/title tag transformations and launches browser search.
 
 Examples:
 - File path mode:
   - `python3 search_audio_ui.py "/path/Artist - Title (Explicit).mp3"`
 - Literal query mode:
   - `python3 search_audio_ui.py --literal-query "Artist - Title"`
+- Artist/title tag mode:
+  - `python3 search_audio_ui.py --query-from-tags "/path/Tagged File.mp3"`
 
 Filename transformations:
 - strip extension
@@ -26,8 +28,9 @@ Query cleanup:
 - remove `Grupo ` / `grupo ` (case-insensitive after diacritic cleanup)
 - remove standalone common contraction words such as `I'd`, `I'm`, `you're`, `don't`, `can't`, plus apostrophe-stripped forms such as `Id`, `Im`, `youre`, `dont`, `cant` (case-insensitive)
 
-Useful flag:
+Useful flags:
 - `--print-query` (debug transformed query)
+- `--query-from-tags` (for real audio file paths, build `Artist - Title` from MP3/M4A tags using `ffprobe`; falls back to filename parsing if tags are unavailable)
 
 ## `browser_search_playwright.py`
 

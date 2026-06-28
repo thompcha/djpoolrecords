@@ -35,6 +35,8 @@ exec "$PYTHON" "$SEARCH_SCRIPT" --print-query "$1"
 
 Notes:
 - `--print-query` is optional; useful while validating transformations.
+- Add `--query-from-tags` before `"$1"` to search from MP3/M4A artist/title tags instead of the filename:
+  - `exec "$PYTHON" "$SEARCH_SCRIPT" --print-query --query-from-tags "$1"`
 - Automator now benefits from the fast UI-only path in Playwright.
 - Browser close ends script cleanly (no Enter prompt).
 

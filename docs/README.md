@@ -12,7 +12,10 @@ This folder documents the current automation stack for searching DJPoolRecords a
    - `python -m playwright install chromium`
 2. Run one-argument audio UI search from a file:
    - `python search_audio_ui.py "/path/to/file.mp3"`
-3. Run a literal query:
+3. Run audio UI search from MP3/M4A artist/title tags:
+   - `python search_audio_ui.py --query-from-tags "/path/to/file.mp3"`
+   - `/usr/bin/python3 /Users/thompcha/Documents/Scripts/djpoolrecords/search_audio_ui.py --print-query --query-from-tags "/path/to/file.mp3"`
+4. Run a literal query:
    - `python search_audio_ui.py --literal-query "artist - title"`
 
 ## GitHub Install on Another Mac
@@ -62,7 +65,7 @@ or copy that file between Macs.
 ## Core Scripts
 
 - `browser_search_playwright.py`: browser automation engine (audio-module aware).
-- `search_audio_ui.py`: wrapper that transforms filename -> query and launches browser search.
+- `search_audio_ui.py`: wrapper that transforms filename or artist/title tags -> query and launches browser search.
 - `query_search_field.py`: direct AJAX querying utility with debugging/probing tools.
 - `search_authenticated.py`: HTTP login/cookie-based request runner (best-effort, Cloudflare-sensitive).
 
