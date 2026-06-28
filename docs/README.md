@@ -41,7 +41,7 @@ Test the install:
 
 ```zsh
 source ~/Documents/Scripts/djpoolrecords/.venv/bin/activate
-python ~/Documents/Scripts/djpoolrecords/search_audio_ui.py --literal-query "Drake - One Dance"
+python ~/Documents/Scripts/djpoolrecords/search_audio_ui.py --literal-query "Tesher - Jalebi Baby"
 ```
 
 The first run may require browser login or challenge handling. After successful
