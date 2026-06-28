@@ -26,7 +26,7 @@ On the second Mac:
 ```zsh
 mkdir -p ~/Documents/Scripts
 cd ~/Documents/Scripts
-git clone git@github.com:<your-github-user>/djpoolrecords.git
+git clone git@github.com:thompcha/djpoolrecords.git
 cd djpoolrecords
 
 python3 -m venv .venv
