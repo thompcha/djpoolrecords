@@ -12,5 +12,5 @@ if [[ $# -lt 1 ]]; then
   exit 1
 fi
 
-# First selected file path is searched using MP3/M4A artist/title tags.
-exec /usr/bin/python3 "$SEARCH_SCRIPT" --print-query --query-from-tags "$1"
+# First selected file path goes straight to the Python wrapper.
+exec /usr/bin/python3 "$SEARCH_SCRIPT" --print-query "$1"
